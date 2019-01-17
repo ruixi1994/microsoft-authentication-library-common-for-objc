@@ -29,17 +29,21 @@
 #import "MSIDStorageManagerMac.h"
 
 @interface MSIDStorageManagerMacTests : XCTestCase
-
+{
+    id<MSIDStorageManager> _storage;
+}
 @end
 
 @implementation MSIDStorageManagerMacTests
 
 - (void)setUp {
     // Put setup code here. This method is called before the invocation of each test method in the class.
+    _storage = [MSIDStorageManagerMac new];
 }
 
 - (void)tearDown {
     // Put teardown code here. This method is called after the invocation of each test method in the class.
+    _storage = nil;
 }
 
 - (void)testStorageManagerMac_writeAccount {
@@ -60,9 +64,8 @@
     account.alternativeAccountId = @"alt";
     account.name = @"test user";
 
-    MSIDStorageManagerMac *storage = [MSIDStorageManagerMac new];
     NSError* error;
-    __unused BOOL result = [storage writeAccount:nil account:account error:&error];
+    __unused BOOL result = [_storage writeAccount:nil account:account error:&error];
     
 }
 

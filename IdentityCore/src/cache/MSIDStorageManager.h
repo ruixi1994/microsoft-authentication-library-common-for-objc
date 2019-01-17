@@ -28,7 +28,7 @@
 
 @protocol MSIDStorageManager
 
-@property (readwrite, nullable) NSString* accessGroup;
+@property (nullable) NSString* accessGroup;
 
 /**
  * Gets all credentials which match the parameters. May return a partial list of credentials

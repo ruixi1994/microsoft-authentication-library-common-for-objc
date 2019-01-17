@@ -41,13 +41,14 @@ typedef NS_ENUM(NSInteger, MSIDKeychainAccountType)
 
 @interface MSIDStorageManagerMac ()
 
-@property (readwrite, nullable) MSIDJsonSerializer* jsonSerializer;
+@property MSIDJsonSerializer* jsonSerializer;
 
 @end
 
 
 @implementation MSIDStorageManagerMac
 
+// Connect the interface property variable to an actual member variable:
 @synthesize accessGroup = _accessGroup;
 
 #pragma mark - init
