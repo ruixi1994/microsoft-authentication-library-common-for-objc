@@ -30,6 +30,15 @@
 #import "MSIDCredentialType.h"
 #import "MSIDJsonSerializer.h"
 
+typedef NS_ENUM(NSInteger, MSIDKeychainAccountType)
+{
+    MSIDKeychainAccountTypeAADV1 = 1001,
+    MSIDKeychainAccountTypeMSA,
+    MSIDKeychainAccountTypeMSSTS,
+    MSIDKeychainAccountTypeOther
+};
+
+
 @interface MSIDStorageManagerMac ()
 
 @property (readwrite, nullable) MSIDJsonSerializer* jsonSerializer;
@@ -41,6 +50,8 @@
 
 @synthesize accessGroup = _accessGroup;
 
+#pragma mark - init
+
 - (id)init {
     self = [super init];
     if (self) {
@@ -49,6 +60,8 @@
     }
     return self;
 }
+
+#pragma mark - Credentials
 
 /** Gets all credentials which match the parameters. */
 - (nullable NSArray<MSIDCredentialCacheItem *> *)readCredentials:(nullable __unused NSString *)correlationId
@@ -81,6 +94,8 @@
     return TRUE;
 }
 
+#pragma mark - Accounts
+
 /** Reads all accounts present in the cache. */
 - (nullable NSArray<MSIDAccountCacheItem *> *)readAllAccounts:(nullable __unused NSString *)correlationId
                                                         error:(__unused NSError *_Nullable *_Nullable)error {
@@ -101,43 +116,14 @@
              account:(nullable MSIDAccountCacheItem *)account
                error:(NSError *_Nullable *_Nullable)error {
 
-/*
-    The Djinni-specified write_account API would be implemented:
-    * Create a JSON-serialization of the account object.
-    * This is a Type 2 artifact (account metadata), so write an item to the keychain with the following attributes:
-        o kSecClass is set to kSecClassGenericPassword.
-        o kSecAttrAccount is set to “<access_group>-<account_id>” where:
-            - <access_group> is defined by the app and passed to the cache.
-            - <account_id> is “<home_account_id>-<environment>”.
-            - <home_account_id> is account.getHomeAccountId().
-            - <environment> is account.getEnvironment().
-        o kSecAttrService is set to account.getRealm().
-        o kSecAttGeneric is set to account.getLocalAccountId().
-        o kSecAttrType is a numeric value based on account.getAuthorityType():
-            - 1001=AAD, 1002=MSA, 1003=MSSTS, 1004=Generic (NTLM, Kerberos, FBA, Basic, etc.)
-        o kSecValueData is set to the JSON-serialized account object encoded above.
-        o Note: The keychain item’s ACL is set to allow access by all apps.
-    * Allocate an MSALOperationStatus object, set appropriate values, and return it.
-*/
     NSData *itemData = [self.jsonSerializer toJsonData:account context:nil error:error];
     if (!itemData) {
-        // TODO: set error
+        // TODO: handle error
         return FALSE;
     }
 
-    NSString *accountAttr = [NSString stringWithFormat:@"%@-%@-%@",
-                           self.accessGroup, account.homeAccountId, account.environment];
-    
-    NSDictionary *query = @{
-                            (id)kSecClass: (id)kSecClassGenericPassword,
-                            (id)kSecAttrService: account.realm,
-                            (id)kSecAttrAccount: accountAttr,
-                            (id)kSecAttrGeneric: account.localAccountId,
-                            (id)kSecAttrType: [self accountAttribute:account.accountType],
-                            };
-    NSDictionary *update = @{
-                           (id)kSecValueData:itemData
-                           };
+    NSDictionary *query = [self defaultAccountQuery:account];
+    NSDictionary *update = @{ (id)kSecValueData:itemData };
     
     OSStatus status = SecItemUpdate((CFDictionaryRef)query, (CFDictionaryRef)update);
     if (status == errSecItemNotFound) {
@@ -145,42 +131,14 @@
         [item addEntriesFromDictionary:update];
         status = SecItemAdd((CFDictionaryRef)item, NULL);
     }
+
+    // TODO: Set the keychain item’s ACL to allow access by all apps.
     
     if (status != errSecSuccess) {
-        // TODO: set error
+        // TODO: handle error
         return FALSE;
     } else {
         return TRUE;
-    }
-
-}
-
-- (NSNumber*)accountAttribute:(MSIDAccountType)accountType {
-    switch (accountType) {
-        case MSIDAccountTypeAADV1:
-            return @1001;
-        case MSIDAccountTypeMSA:
-            return @1002;
-        case MSIDAccountTypeMSSTS:
-            return @1003;
-        case MSIDAccountTypeOther:
-            return @1004;
-    }
-}
-
-- (MSIDAccountType)accountType:(NSNumber*)accountAttribute {
-    switch ([accountAttribute integerValue]) {
-        case 1001:
-            return MSIDAccountTypeAADV1;
-        case 1002:
-            return MSIDAccountTypeMSA;
-        case 1003:
-            return MSIDAccountTypeMSSTS;
-        case 1004:
-            return MSIDAccountTypeOther;
-        default:
-            // TODO: report error/log ?
-            return MSIDAccountTypeOther;
     }
 }
 
@@ -199,6 +157,46 @@
            environment:(nullable __unused NSString *)environment
                  error:(__unused NSError *_Nullable *_Nullable)error {
     return TRUE;
+}
+
+- (NSDictionary*)defaultAccountQuery:(MSIDAccountCacheItem*)account {
+    return @{
+        (id)kSecClass: (id)kSecClassGenericPassword,
+        (id)kSecAttrService: account.realm,
+        (id)kSecAttrAccount: [NSString stringWithFormat:@"%@-%@-%@",
+                              self.accessGroup, account.homeAccountId, account.environment],
+        (id)kSecAttrGeneric: account.localAccountId,
+        (id)kSecAttrType: [self accountAttribute:account.accountType],
+    };
+}
+
+- (NSNumber*)accountAttribute:(MSIDAccountType)accountType {
+    switch (accountType) {
+        case MSIDAccountTypeAADV1:
+            return @(MSIDKeychainAccountTypeAADV1);
+        case MSIDAccountTypeMSA:
+            return @(MSIDKeychainAccountTypeMSA);
+        case MSIDAccountTypeMSSTS:
+            return @(MSIDKeychainAccountTypeMSSTS);
+        case MSIDAccountTypeOther:
+            return @(MSIDKeychainAccountTypeOther);
+    }
+}
+
+- (MSIDAccountType)accountType:(NSNumber*)accountAttribute {
+    switch ([accountAttribute integerValue]) {
+        case MSIDKeychainAccountTypeAADV1:
+            return MSIDAccountTypeAADV1;
+        case MSIDKeychainAccountTypeMSA:
+            return MSIDAccountTypeMSA;
+        case MSIDKeychainAccountTypeMSSTS:
+            return MSIDAccountTypeMSSTS;
+        case MSIDKeychainAccountTypeOther:
+            return MSIDAccountTypeOther;
+        default:
+            // TODO: report error/log?
+            return MSIDAccountTypeOther;
+    }
 }
 
 @end
