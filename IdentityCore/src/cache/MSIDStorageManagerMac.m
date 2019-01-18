@@ -117,9 +117,15 @@ typedef NS_ENUM(NSInteger, MSIDKeychainAccountType)
              account:(nullable MSIDAccountCacheItem *)account
                error:(NSError *_Nullable *_Nullable)error {
 
-    NSData *itemData = [self.jsonSerializer toJsonData:account context:nil error:error];
+    NSError* jsonError;
+    NSData *itemData = [self.jsonSerializer toJsonData:account context:nil error:&jsonError];
     if (!itemData) {
-        // TODO: handle error
+        NSString* errorDescription = @"Failed to serialize account to json data.";
+        MSID_LOG_ERROR(nil, @"%@", errorDescription);
+        if (error) {
+            *error = MSIDCreateError(MSIDErrorDomain, MSIDErrorInternal, errorDescription,
+                                     nil, nil, jsonError, nil, nil);
+        }
         return FALSE;
     }
 
@@ -132,11 +138,14 @@ typedef NS_ENUM(NSInteger, MSIDKeychainAccountType)
         [item addEntriesFromDictionary:update];
         status = SecItemAdd((CFDictionaryRef)item, NULL);
     }
-
-    // TODO: Set the keychain item’s ACL to allow access by all apps.
     
     if (status != errSecSuccess) {
-        // TODO: handle error
+        NSString* errorDescription = [NSString stringWithFormat:@"Failed to write account to keychain (%d)", status];
+        MSID_LOG_ERROR(nil, @"%@", errorDescription);
+        if (error) {
+            *error = MSIDCreateError(MSIDErrorDomain, MSIDErrorInternal, errorDescription, nil, nil,
+                                     [NSError errorWithDomain:NSOSStatusErrorDomain code:status userInfo:nil], nil, nil);
+        }
         return FALSE;
     } else {
         return TRUE;
