@@ -117,15 +117,9 @@ typedef NS_ENUM(NSInteger, MSIDKeychainAccountType)
              account:(nullable MSIDAccountCacheItem *)account
                error:(NSError *_Nullable *_Nullable)error {
 
-    NSError* jsonError;
-    NSData *itemData = [self.jsonSerializer toJsonData:account context:nil error:&jsonError];
+    NSData *itemData = [self.jsonSerializer toJsonData:account context:nil error:error];
     if (!itemData) {
-        NSString* errorDescription = @"Failed to serialize account to json data.";
-        MSID_LOG_ERROR(nil, @"%@", errorDescription);
-        if (error) {
-            *error = MSIDCreateError(MSIDErrorDomain, MSIDErrorInternal, errorDescription,
-                                     nil, nil, jsonError, nil, nil);
-        }
+        MSID_LOG_ERROR(nil, @"%@", @"Failed to serialize account to json data.");
         return FALSE;
     }
 
@@ -140,11 +134,9 @@ typedef NS_ENUM(NSInteger, MSIDKeychainAccountType)
     }
     
     if (status != errSecSuccess) {
-        NSString* errorDescription = [NSString stringWithFormat:@"Failed to write account to keychain (%d)", status];
-        MSID_LOG_ERROR(nil, @"%@", errorDescription);
+        MSID_LOG_ERROR(nil, @"Failed to write account to keychain (%d)", status);
         if (error) {
-            *error = MSIDCreateError(MSIDErrorDomain, MSIDErrorInternal, errorDescription, nil, nil,
-                                     [NSError errorWithDomain:NSOSStatusErrorDomain code:status userInfo:nil], nil, nil);
+            *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:(NSInteger)status userInfo:nil];
         }
         return FALSE;
     } else {
