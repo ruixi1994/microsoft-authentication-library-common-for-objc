@@ -37,18 +37,14 @@
 @implementation MSIDStorageManagerMacTests
 
 - (void)setUp {
-    // Put setup code here. This method is called before the invocation of each test method in the class.
     _storage = [MSIDStorageManagerMac new];
 }
 
 - (void)tearDown {
-    // Put teardown code here. This method is called after the invocation of each test method in the class.
     _storage = nil;
 }
 
-- (void)testStorageManagerMac_writeAccount {
-    // This is an example of a functional test case.
-    // Use XCTAssert and related functions to verify your tests produce the correct results.
+- (void)testStorageManagerMac_whenAccountWritten_updatesKeychain {
 
     MSIDAccountCacheItem *account = [MSIDAccountCacheItem new];
     account.environment = DEFAULT_TEST_ENVIRONMENT;
@@ -65,27 +61,9 @@
     account.name = @"test user";
 
     NSError* error;
-    __unused BOOL result = [_storage writeAccount:nil account:account error:&error];
-    
-}
-
-#if 0
-- (void)testKeychain {
-    SecKeyRef key =  a key ;
-    NSData* tag = [@"com.example.keys.mykey" dataUsingEncoding:NSUTF8StringEncoding];
-    NSDictionary* addquery = @{ (id)kSecValueRef: (__bridge id)key,
-                                (id)kSecClass: (id)kSecClassKey,
-                                (id)kSecAttrApplicationTag: tag,
-                                };
-}
-
-#endif
-
-- (void)testPerformanceExample {
-    // This is an example of a performance test case.
-    [self measureBlock:^{
-        // Put the code you want to measure the time of here.
-    }];
+    BOOL result = [_storage writeAccount:nil account:account error:&error];
+    XCTAssertTrue(result);
+    XCTAssertNil(error);
 }
 
 @end
