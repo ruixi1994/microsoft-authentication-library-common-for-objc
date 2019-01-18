@@ -41,7 +41,7 @@ typedef NS_ENUM(NSInteger, MSIDKeychainAccountType)
 
 @interface MSIDStorageManagerMac ()
 
-@property MSIDJsonSerializer* jsonSerializer;
+@property (nonnull) MSIDJsonSerializer* jsonSerializer;
 
 @end
 
