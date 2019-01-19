@@ -113,20 +113,36 @@ typedef NS_ENUM(NSInteger, MSIDKeychainAccountType) {
 - (BOOL)writeAccount:(nullable __unused NSString *)correlationId
              account:(nullable MSIDAccountCacheItem *)account
                error:(NSError *_Nullable *_Nullable)error {
-    NSData *itemData = [self.jsonSerializer toJsonData:account context:nil error:error];
-    if (!itemData) {
+    // Get previous account, so we don't loose any fields
+    MSIDAccountCacheItem *previousAccount = [self readAccount:correlationId
+                                                homeAccountId:account.homeAccountId
+                                                  environment:account.environment
+                                                        realm:account.realm
+                                                        error:nil];
+    if (previousAccount) {
+        [account updateFieldsFromAccount:previousAccount];
+    }
+
+    NSData *jsonData = [self.jsonSerializer toJsonData:account context:nil error:error];
+    if (!jsonData) {
         MSID_LOG_ERROR(nil, @"%@", @"Failed to serialize account to json data.");
         return FALSE;
     }
 
-    NSDictionary *query = [self defaultAccountQuery:account];
-    NSDictionary *update = @{(id)kSecValueData: itemData};
+    NSDictionary *query = [self defaultAccountQuery:account.homeAccountId
+                                        environment:account.environment
+                                              realm:account.realm];
+    NSDictionary *update = @{
+        (id)kSecValueData: jsonData,
+        (id)kSecAttrGeneric: account.localAccountId,
+        (id)kSecAttrType: [self accountAttribute:account.accountType],
+    };
 
     OSStatus status = SecItemUpdate((CFDictionaryRef)query, (CFDictionaryRef)update);
     if (status == errSecItemNotFound) {
-        NSMutableDictionary *item = [query mutableCopy];
-        [item addEntriesFromDictionary:update];
-        status = SecItemAdd((CFDictionaryRef)item, NULL);
+        NSMutableDictionary *dict = [query mutableCopy];
+        [dict addEntriesFromDictionary:update];
+        status = SecItemAdd((CFDictionaryRef)dict, NULL);
     }
 
     if (status != errSecSuccess) {
@@ -159,14 +175,13 @@ typedef NS_ENUM(NSInteger, MSIDKeychainAccountType) {
 
 #pragma mark - Account Utilities
 
-- (NSDictionary *)defaultAccountQuery:(MSIDAccountCacheItem *)account {
+- (NSDictionary *)defaultAccountQuery:(nullable __unused NSString *)homeAccountId
+                          environment:(nullable __unused NSString *)environment
+                                realm:(nullable __unused NSString *)realm {
     return @{
         (id)kSecClass: (id)kSecClassGenericPassword,
-        (id)kSecAttrService: account.realm,
-        (id)kSecAttrAccount:
-            [NSString stringWithFormat:@"%@-%@-%@", self.accessGroup, account.homeAccountId, account.environment],
-        (id)kSecAttrGeneric: account.localAccountId,
-        (id)kSecAttrType: [self accountAttribute:account.accountType],
+        (id)kSecAttrService: realm,
+        (id)kSecAttrAccount: [NSString stringWithFormat:@"%@-%@-%@", self.accessGroup, homeAccountId, environment]
     };
 }
 
