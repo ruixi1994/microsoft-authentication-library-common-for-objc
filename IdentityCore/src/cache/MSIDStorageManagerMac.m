@@ -157,6 +157,8 @@ typedef NS_ENUM(NSInteger, MSIDKeychainAccountType) {
     return TRUE;
 }
 
+#pragma mark - Account Utilities
+
 - (NSDictionary *)defaultAccountQuery:(MSIDAccountCacheItem *)account {
     return @{
         (id)kSecClass: (id)kSecClassGenericPassword,

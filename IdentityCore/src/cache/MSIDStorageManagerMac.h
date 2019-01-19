@@ -26,8 +26,110 @@
 
 @interface MSIDStorageManagerMac : NSObject <MSIDStorageManager>
 
+/**
+ * Gets all credentials which match the parameters. May return a partial list of credentials
+ * if failed to read all of them, in which case the error result may be set.
+ * correlationId: optional
+ * homeAccountId: required
+ * environment: required
+ * realm: optional. Empty string means "match all".
+ * clientId: required
+ * target: optional. Empty string means "match all".
+ * type: required. It's a collection of types. The API should return all types which are present in the set.
+ * error: optional
+ */
+- (nullable NSArray<MSIDCredentialCacheItem *> *)readCredentials:(nullable NSString *)correlationId
+                                                   homeAccountId:(nullable NSString *)homeAccountId
+                                                     environment:(nullable NSString *)environment
+                                                           realm:(nullable NSString *)realm
+                                                        clientId:(nullable NSString *)clientId
+                                                          target:(nullable NSString *)target
+                                                           types:(nullable NSSet<NSNumber *> *)types
+                                                           error:(NSError *_Nullable *_Nullable)error;
+
+/**
+ * Writes all credentials in the list to the storage.
+ * correlationId: optional
+ * credentials: the list of credentials to write. They don't have to fall under the same environment, account, or user.
+ * error: optional
+ */
+- (BOOL)writeCredentials:(nullable NSString *)correlationId
+             credentials:(nullable NSArray<MSIDCredentialCacheItem *> *)credentials
+                   error:(NSError *_Nullable *_Nullable)error;
+
+/** Deletes all matching credentials. Parameters mirror read_credentials. */
+- (BOOL)deleteCredentials:(nullable NSString *)correlationId
+            homeAccountId:(nullable NSString *)homeAccountId
+              environment:(nullable NSString *)environment
+                    realm:(nullable NSString *)realm
+                 clientId:(nullable NSString *)clientId
+                   target:(nullable NSString *)target
+                    types:(nullable NSSet<NSNumber *> *)types
+                    error:(NSError *_Nullable *_Nullable)error;
+
+/**
+ * Reads all accounts present in the cache. May return a partial list of accounts if failed
+ * to read all of them, in which case the error result may be set.
+ * correlationId: optional
+ * error: optional
+ */
+- (nullable NSArray<MSIDAccountCacheItem *> *)readAllAccounts:(nullable NSString *)correlationId
+                                                        error:(NSError *_Nullable *_Nullable)error;
+
+/**
+ * Reads an account object, if present. If account is not present in the cache, error is nil
+ * with "account" being nil.
+ * correlationId: optional
+ * homeAccountId: required
+ * environment: required
+ * realm: required
+ * error: optional
+ */
+- (nullable MSIDAccountCacheItem *)readAccount:(nullable NSString *)correlationId
+                                 homeAccountId:(nullable NSString *)homeAccountId
+                                   environment:(nullable NSString *)environment
+                                         realm:(nullable NSString *)realm
+                                         error:(NSError *_Nullable *_Nullable)error;
+
+/**
+ * Write an account object into cache. A non-nil error means that the account wasn't written.
+ * correlationId: optional
+ * account: required
+ * error: optional
+ */
 - (BOOL)writeAccount:(nullable NSString *)correlationId
              account:(nullable MSIDAccountCacheItem *)account
                error:(NSError *_Nullable *_Nullable)error;
+
+/**
+ * Deletes an account and all associated credentials.
+ * Specifically, it removes all associated access tokens and id tokens.
+ * It does not remove any refresh tokens or family refresh tokens, because those are associated with multiple accounts.
+ * correlationId: optional
+ * homeAccountId: required
+ * environment: required
+ * realm: required
+ * error: optional
+ */
+- (BOOL)deleteAccount:(nullable NSString *)correlationId
+        homeAccountId:(nullable NSString *)homeAccountId
+          environment:(nullable NSString *)environment
+                realm:(nullable NSString *)realm
+                error:(NSError *_Nullable *_Nullable)error;
+
+/**
+ * Deletes all information associated with a given homeAccountId and environment.
+ * This includes all accounts, access tokens, id tokens, refresh tokens, and family refresh tokens.
+ * correlationId: optional
+ * homeAccountId: required
+ * environment: optional. Empty string means "match all".
+ * error: optional
+ */
+- (BOOL)deleteAccounts:(nullable NSString *)correlationId
+         homeAccountId:(nullable NSString *)homeAccountId
+           environment:(nullable NSString *)environment
+                 error:(NSError *_Nullable *_Nullable)error;
+
+
 
 @end
