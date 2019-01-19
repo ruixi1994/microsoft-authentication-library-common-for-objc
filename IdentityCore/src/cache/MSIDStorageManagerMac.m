@@ -22,29 +22,26 @@
 // THE SOFTWARE.
 
 #import <Foundation/Foundation.h>
-#import "MSIDAccountType.h"
 #import "MSIDAccountCacheItem.h"
+#import "MSIDAccountType.h"
 #import "MSIDCredentialCacheItem.h"
-#import "MSIDLogger.h"
-#import "MSIDStorageManagerMac.h"
 #import "MSIDCredentialType.h"
 #import "MSIDJsonSerializer.h"
+#import "MSIDLogger.h"
+#import "MSIDStorageManagerMac.h"
 
-typedef NS_ENUM(NSInteger, MSIDKeychainAccountType)
-{
+typedef NS_ENUM(NSInteger, MSIDKeychainAccountType) {
     MSIDKeychainAccountTypeAADV1 = 1001,
     MSIDKeychainAccountTypeMSA,
     MSIDKeychainAccountTypeMSSTS,
     MSIDKeychainAccountTypeOther
 };
 
-
 @interface MSIDStorageManagerMac ()
 
-@property (nonnull) MSIDJsonSerializer* jsonSerializer;
+@property (nonnull) MSIDJsonSerializer *jsonSerializer;
 
 @end
-
 
 @implementation MSIDStorageManagerMac
 
@@ -116,7 +113,6 @@ typedef NS_ENUM(NSInteger, MSIDKeychainAccountType)
 - (BOOL)writeAccount:(nullable __unused NSString *)correlationId
              account:(nullable MSIDAccountCacheItem *)account
                error:(NSError *_Nullable *_Nullable)error {
-
     NSData *itemData = [self.jsonSerializer toJsonData:account context:nil error:error];
     if (!itemData) {
         MSID_LOG_ERROR(nil, @"%@", @"Failed to serialize account to json data.");
@@ -124,15 +120,15 @@ typedef NS_ENUM(NSInteger, MSIDKeychainAccountType)
     }
 
     NSDictionary *query = [self defaultAccountQuery:account];
-    NSDictionary *update = @{ (id)kSecValueData:itemData };
-    
+    NSDictionary *update = @{(id)kSecValueData: itemData};
+
     OSStatus status = SecItemUpdate((CFDictionaryRef)query, (CFDictionaryRef)update);
     if (status == errSecItemNotFound) {
-        NSMutableDictionary* item = [query mutableCopy];
+        NSMutableDictionary *item = [query mutableCopy];
         [item addEntriesFromDictionary:update];
         status = SecItemAdd((CFDictionaryRef)item, NULL);
     }
-    
+
     if (status != errSecSuccess) {
         MSID_LOG_ERROR(nil, @"Failed to write account to keychain (%d)", status);
         if (error) {
@@ -161,18 +157,18 @@ typedef NS_ENUM(NSInteger, MSIDKeychainAccountType)
     return TRUE;
 }
 
-- (NSDictionary*)defaultAccountQuery:(MSIDAccountCacheItem*)account {
+- (NSDictionary *)defaultAccountQuery:(MSIDAccountCacheItem *)account {
     return @{
         (id)kSecClass: (id)kSecClassGenericPassword,
         (id)kSecAttrService: account.realm,
-        (id)kSecAttrAccount: [NSString stringWithFormat:@"%@-%@-%@",
-                              self.accessGroup, account.homeAccountId, account.environment],
+        (id)kSecAttrAccount:
+            [NSString stringWithFormat:@"%@-%@-%@", self.accessGroup, account.homeAccountId, account.environment],
         (id)kSecAttrGeneric: account.localAccountId,
         (id)kSecAttrType: [self accountAttribute:account.accountType],
     };
 }
 
-- (NSNumber*)accountAttribute:(MSIDAccountType)accountType {
+- (NSNumber *)accountAttribute:(MSIDAccountType)accountType {
     switch (accountType) {
         case MSIDAccountTypeAADV1:
             return @(MSIDKeychainAccountTypeAADV1);
@@ -185,7 +181,7 @@ typedef NS_ENUM(NSInteger, MSIDKeychainAccountType)
     }
 }
 
-- (MSIDAccountType)accountType:(NSNumber*)accountAttribute {
+- (MSIDAccountType)accountType:(NSNumber *)accountAttribute {
     switch ([accountAttribute integerValue]) {
         case MSIDKeychainAccountTypeAADV1:
             return MSIDAccountTypeAADV1;

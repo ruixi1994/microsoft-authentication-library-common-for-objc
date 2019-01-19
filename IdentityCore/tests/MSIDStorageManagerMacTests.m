@@ -21,15 +21,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#import <XCTest/XCTest.h>
 #import "MSIDAccountCacheItem.h"
-#import "MSIDTestIdentifiers.h"
-#import "NSDictionary+MSIDTestUtil.h"
 #import "MSIDClientInfo.h"
 #import "MSIDStorageManagerMac.h"
+#import "MSIDTestIdentifiers.h"
+#import "NSDictionary+MSIDTestUtil.h"
+#import <XCTest/XCTest.h>
 
-@interface MSIDStorageManagerMacTests : XCTestCase
-{
+@interface MSIDStorageManagerMacTests : XCTestCase {
     id<MSIDStorageManager> _storage;
 }
 @end
@@ -45,12 +44,10 @@
 }
 
 - (void)testStorageManagerMac_whenAccountWritten_updatesKeychain {
-
     MSIDAccountCacheItem *account = [MSIDAccountCacheItem new];
     account.environment = DEFAULT_TEST_ENVIRONMENT;
     account.realm = @"contoso.com";
-    account.additionalAccountFields = @{@"test": @"test2",
-                                        @"test3": @"test4"};
+    account.additionalAccountFields = @{@"test": @"test2", @"test3": @"test4"};
     account.localAccountId = @"0000004-0000004-000004";
     account.givenName = @"First name";
     account.familyName = @"Last name";
@@ -60,7 +57,7 @@
     account.alternativeAccountId = @"alt";
     account.name = @"test user";
 
-    NSError* error;
+    NSError *error;
     BOOL result = [_storage writeAccount:nil account:account error:&error];
     XCTAssertTrue(result);
     XCTAssertNil(error);
