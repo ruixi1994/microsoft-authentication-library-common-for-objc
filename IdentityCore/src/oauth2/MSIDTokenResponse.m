@@ -142,12 +142,7 @@ MSID_JSON_RW(MSID_OAUTH2_ID_TOKEN, idToken, setIdToken)
                              MSID_OAUTH2_ID_TOKEN,
                              MSID_OAUTH2_EXPIRES_IN];
     
-    NSDictionary *additionalInfo = [_json dictionaryByRemovingFields:knownFields];
-    if (additionalInfo.count > 0)
-    {
-        return additionalInfo;
-    }
-    return nil;
+    return [_json dictionaryByRemovingFields:knownFields];
 }
 
 - (NSString *)description

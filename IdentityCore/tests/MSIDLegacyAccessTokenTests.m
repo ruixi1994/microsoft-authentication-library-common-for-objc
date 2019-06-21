@@ -199,7 +199,7 @@
     cacheItem.credentialType = MSIDAccessTokenType;
     cacheItem.environment = @"login.microsoftonline.com";
     cacheItem.realm = @"common";
-    cacheItem.speInfo = @"test";
+    cacheItem.additionalInfo = @{@"test": @"test2"};
     cacheItem.homeAccountId = @"uid.utid";
     cacheItem.clientId = @"client id";
     cacheItem.secret = @"token";
@@ -216,8 +216,7 @@
     XCTAssertEqualObjects(token.environment, @"login.microsoftonline.com");
     XCTAssertEqualObjects(token.realm, @"common");
     XCTAssertEqualObjects(token.clientId, @"client id");
-    XCTAssertEqualObjects(token.speInfo, @"test");
-    XCTAssertNil(token.additionalServerInfo);
+    XCTAssertEqualObjects(token.additionalServerInfo, @{@"test": @"test2"});
     XCTAssertEqualObjects(token.accountIdentifier.homeAccountId, @"uid.utid");
     XCTAssertEqualObjects(token.expiresOn, expiresOn);
     XCTAssertEqualObjects(token.cachedAt, cachedAt);

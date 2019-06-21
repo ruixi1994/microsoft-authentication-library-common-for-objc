@@ -161,12 +161,7 @@ MSID_JSON_ACCESSOR(@"adi", additionalUserId)
                              MSID_OAUTH2_EXT_EXPIRES_IN, @"url",
                              MSID_OAUTH2_SUB_ERROR];
     
-    additionalInfo = [additionalInfo dictionaryByRemovingFields:knownFields];
-    if (additionalInfo.count > 0)
-    {
-        return additionalInfo;
-    }
-    return nil;
+    return [additionalInfo dictionaryByRemovingFields:knownFields];
 }
 
 - (NSString *)description

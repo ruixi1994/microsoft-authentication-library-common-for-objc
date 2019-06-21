@@ -211,7 +211,7 @@
     NSString *homeAccountId = [NSString stringWithFormat:@"%@.%@", DEFAULT_TEST_UID, DEFAULT_TEST_UTID];
     XCTAssertEqualObjects(token.accountIdentifier.homeAccountId, homeAccountId);
         
-    XCTAssertNil(token.additionalServerInfo);
+    XCTAssertEqualObjects(token.additionalServerInfo, [NSMutableDictionary dictionary]);
 }
 
 - (void)testAccessTokenFromResponse_whenAADV2TokenResponse_shouldReturnToken
@@ -256,7 +256,7 @@
     NSString *homeAccountId = [NSString stringWithFormat:@"%@.%@", DEFAULT_TEST_UID, DEFAULT_TEST_UTID];
     XCTAssertEqualObjects(token.accountIdentifier.homeAccountId, homeAccountId);
 
-    XCTAssertNil(token.additionalServerInfo);
+    XCTAssertEqualObjects(token.additionalServerInfo, [NSMutableDictionary dictionary]);
     XCTAssertEqualObjects(token.refreshToken, DEFAULT_TEST_REFRESH_TOKEN);
     XCTAssertNil(token.familyId);
 }
@@ -277,7 +277,7 @@
     NSString *homeAccountId = [NSString stringWithFormat:@"%@.%@", DEFAULT_TEST_UID, DEFAULT_TEST_UTID];
     XCTAssertEqualObjects(token.accountIdentifier.homeAccountId, homeAccountId);
 
-    XCTAssertNil(token.additionalServerInfo);
+    XCTAssertEqualObjects(token.additionalServerInfo, [NSMutableDictionary dictionary]);
     
     NSString *idToken = [MSIDTestIdTokenUtil defaultV2IdToken];
     XCTAssertEqualObjects(token.rawIdToken, idToken);

@@ -65,7 +65,6 @@
     result &= (!self.refreshToken && !item.refreshToken) || [self.refreshToken isEqualToString:item.refreshToken];
     result &= (!self.idToken && !item.idToken) || [self.idToken isEqualToString:item.idToken];
     result &= (!self.oauthTokenType && !item.oauthTokenType) || [self.oauthTokenType isEqualToString:item.oauthTokenType];
-    result &= (!self.additionalInfo && !item.additionalInfo) || [self.additionalInfo isEqual:item.additionalInfo];
     return result;
 }
 
@@ -78,7 +77,6 @@
     hash = hash * 31 + self.refreshToken.hash;
     hash = hash * 31 + self.idToken.hash;
     hash = hash * 31 + self.oauthTokenType.hash;
-    hash = hash * 31 + self.additionalInfo.hash;
     return hash;
 }
 
@@ -91,7 +89,6 @@
     item.refreshToken = [self.refreshToken copyWithZone:zone];
     item.idToken = [self.idToken copyWithZone:zone];
     item.oauthTokenType = [self.oauthTokenType copyWithZone:zone];
-    item.additionalInfo = [self.additionalInfo copyWithZone:zone];
     return item;
 }
 
@@ -124,13 +121,12 @@
     self.cachedAt = [coder decodeObjectOfClass:[NSDate class] forKey:@"cachedAt"];
     self.familyId = [coder decodeObjectOfClass:[NSString class] forKey:@"familyId"];
 
-    NSMutableDictionary *additionalServer = [[coder decodeObjectOfClass:[NSDictionary class] forKey:@"additionalServer"] mutableCopy];
-    self.extendedExpiresOn = additionalServer[MSID_EXTENDED_EXPIRES_ON_CACHE_KEY];
-    [additionalServer removeObjectForKey:MSID_EXTENDED_EXPIRES_ON_CACHE_KEY];
-    self.speInfo = additionalServer[MSID_SPE_INFO_CACHE_KEY];
-    [additionalServer removeObjectForKey:MSID_SPE_INFO_CACHE_KEY];
-    if (additionalServer.count)
+    self.additionalInfo = [coder decodeObjectOfClass:[NSDictionary class] forKey:@"additionalServer"];
+    if(self.additionalInfo[MSID_EXTENDED_EXPIRES_ON_CACHE_KEY])
     {
+        self.extendedExpiresOn = self.additionalInfo[MSID_EXTENDED_EXPIRES_ON_CACHE_KEY];
+        NSMutableDictionary *additionalServer = [[NSMutableDictionary alloc] initWithDictionary:self.additionalInfo];
+        [additionalServer removeObjectForKey:MSID_EXTENDED_EXPIRES_ON_CACHE_KEY];
         self.additionalInfo = additionalServer;
     }
 
@@ -177,16 +173,16 @@
 
     [coder encodeObject:[NSMutableDictionary dictionary] forKey:@"additionalClient"];
 
-    NSMutableDictionary* additionalServer = [[NSMutableDictionary alloc] initWithDictionary:self.additionalInfo];
     if (self.extendedExpiresOn)
     {
+        NSMutableDictionary* additionalServer = [[NSMutableDictionary alloc] initWithDictionary:self.additionalInfo];
         additionalServer[MSID_EXTENDED_EXPIRES_ON_CACHE_KEY] = self.extendedExpiresOn;
+        [coder encodeObject:additionalServer forKey:@"additionalServer"];
     }
-    if (self.speInfo)
+    else
     {
-        additionalServer[MSID_SPE_INFO_CACHE_KEY] = self.speInfo;
+        [coder encodeObject:self.additionalInfo forKey:@"additionalServer"];
     }
-    [coder encodeObject:additionalServer forKey:@"additionalServer"];
 
     [coder encodeObject:self.homeAccountId forKey:@"homeAccountId"];
 }

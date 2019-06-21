@@ -54,7 +54,11 @@
     cacheItem.expiresOn = expiresOn;
     cacheItem.extendedExpiresOn = extExpiresOn;
     cacheItem.target = DEFAULT_TEST_RESOURCE;
-    cacheItem.speInfo = @"2";
+
+    NSDictionary *additionalInfo = @{@"test": @"test2",
+                                     @"spe_info": @"2"};
+
+    cacheItem.additionalInfo = additionalInfo;
 
     NSString *cachedAtString = [NSString stringWithFormat:@"%ld", (long)[cachedAt timeIntervalSince1970]];
     NSString *expiresOnString = [NSString stringWithFormat:@"%ld", (long)[expiresOn timeIntervalSince1970]];
@@ -161,7 +165,9 @@
     XCTAssertEqualObjects(cacheItem.realm, @"contoso.com");
     XCTAssertEqualObjects(cacheItem.cachedAt, cachedAt);
     XCTAssertEqualObjects(cacheItem.secret, DEFAULT_TEST_ACCESS_TOKEN);
-    XCTAssertEqualObjects(cacheItem.speInfo, @"2");
+    // @"test" is an unrecognized string and doesn't get added to the additional fields
+    NSDictionary *additionalInfo = @{@"spe_info": @"2"};
+    XCTAssertEqualObjects(cacheItem.additionalInfo, additionalInfo);
     XCTAssertEqualObjects(cacheItem.homeAccountId, @"uid.utid");
     XCTAssertEqualObjects(cacheItem.enrollmentId, @"enrollmentId");
 }
@@ -256,8 +262,9 @@
     cacheItem1.cachedAt = cachedAt;
     cacheItem1.homeAccountId = @"uid.utid";
     cacheItem1.familyId = DEFAULT_TEST_FAMILY_ID;
-    cacheItem1.extendedExpiresOn = extExpiresOn;
-    cacheItem1.speInfo = @"2";
+    NSDictionary *additionalInfo = @{@"ext_expires_on": extExpiresOn,
+                                     @"spe_info": @"2"};
+    cacheItem1.additionalInfo = additionalInfo;
 
     MSIDCredentialCacheItem *cacheItem2 = [MSIDCredentialCacheItem new];
     cacheItem2.credentialType = MSIDIDTokenType;
