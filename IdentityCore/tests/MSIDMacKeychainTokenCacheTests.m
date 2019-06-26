@@ -251,8 +251,6 @@
                                          @"username": @"usernameA",
                                          @"alternative_account_id": @"AltIdA",
                                          @"name": @"NameA",
-                                         @"key1": @"value1",
-                                         @"key2": @"value2",
                                          };
     NSDictionary *accountDictionary2 = @{@"authority_type": @"MSSTS",
                                          @"environment": DEFAULT_TEST_ENVIRONMENT,
@@ -265,8 +263,6 @@
                                          @"username": @"usernameB",
                                          @"alternative_account_id": @"AltIdB",
                                          @"name": @"NameB",
-                                         @"key1": @"VALUE1",
-                                         @"key3": @"VALUE3",
                                          };
     MSIDAccountCacheItem* account1 = [[MSIDAccountCacheItem alloc] initWithJSONDictionary:accountDictionary1 error:&error];
     XCTAssertNil(error);
