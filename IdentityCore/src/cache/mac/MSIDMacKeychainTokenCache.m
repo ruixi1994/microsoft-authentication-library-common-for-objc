@@ -850,7 +850,7 @@ static dispatch_queue_t s_synchronizationQueue;
     return [self removeStorageItemForKey:key context:context error:error];
 }
 
-- (NSDictionary *)primaryAttributesForKey:(MSIDCacheKey *)key context:(id<MSIDRequestContext>)context error:(NSError **)error
+- (NSDictionary *)primaryAttributesForKey:(MSIDCacheKey *)key context:(__unused id<MSIDRequestContext>)context error:(__unused NSError **)error
 {
     NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
     
